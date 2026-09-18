@@ -110,18 +110,37 @@
                 </div>
                 <div class="space-y-2">
                     <h2 class="text-2xl font-bold text-slate-900">TaskFlow へようこそ</h2>
-                    <p class="text-sm text-slate-600">Googleアカウントでログインして、どこからでもタスクをスマートに管理しましょう。</p>
+                    <p class="text-sm text-slate-600">Googleアカウントまたはゲストログインで、タスクをスマートに管理しましょう。</p>
                 </div>
                 
-                <button id="btn-google-login" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.99]">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    <span>Googleでログイン</span>
-                </button>
+                <!-- Domain Auth Error Alert -->
+                <div id="domain-error-alert" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-amber-900">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>Googleログインのドメイン承認設定</span>
+                    </div>
+                    <p>現在のドメイン (<code id="current-domain-name" class="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold"></code>) がFirebaseで未許可のためGoogleログインが制限されています。</p>
+                    <p class="text-slate-600"><strong>Googleログインを使う手順:</strong><br>Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains に上記のドメインを追加してください。<br><br>※下の<strong>「ゲスト（匿名）で始める」</strong>ボタンを押すと、今すぐアプリをテストできます。</p>
+                </div>
+
+                <div class="space-y-3">
+                    <button id="btn-google-login" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.99]">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Googleでログイン</span>
+                    </button>
+
+                    <button id="btn-guest-login" class="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all shadow-sm active:scale-[0.99]">
+                        <svg class="w-5 h-5 stroke-current text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>ゲスト（匿名）で始める</span>
+                    </button>
+                </div>
 
                 <div class="pt-4 border-t border-slate-100 text-xs text-slate-400">
                     Firebase Cloud Firestore による安全なリアルタイム同期
@@ -307,6 +326,8 @@
             getAuth, 
             GoogleAuthProvider, 
             signInWithPopup, 
+            signInAnonymously,
+            signInWithCustomToken,
             signOut, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -353,71 +374,19 @@
         const appView = document.getElementById('app-view');
         
         const btnGoogleLogin = document.getElementById('btn-google-login');
+        const btnGuestLogin = document.getElementById('btn-guest-login');
         const btnLogout = document.getElementById('btn-logout');
-
-        const tasksLoading = document.getElementById('tasks-loading');
-        const tasksEmpty = document.getElementById('tasks-empty');
-        const tasksWrapper = document.getElementById('tasks-wrapper');
-
-        const inputSearch = document.getElementById('input-search');
-        const filterStatus = document.getElementById('filter-status');
-        const filterPriority = document.getElementById('filter-priority');
-
-        const taskModal = document.getElementById('task-modal');
-        const taskForm = document.getElementById('task-form');
-        const modalTitle = document.getElementById('modal-title');
-        const taskIdInput = document.getElementById('task-id');
-        const taskTitleInput = document.getElementById('task-title');
-        const taskDescInput = document.getElementById('task-description');
-        const taskPriorityInput = document.getElementById('task-priority');
-        const taskDueDateInput = document.getElementById('task-due-date');
-
-        const btnOpenCreateModal = document.getElementById('btn-open-create-modal');
-        const btnCloseModal = document.getElementById('btn-close-modal');
-        const btnCancelModal = document.getElementById('btn-cancel-modal');
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let bgClass = 'bg-slate-800 text-white';
-            let iconSvg = `<svg class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-            
-            if (type === 'success') {
-                bgClass = 'bg-emerald-600 text-white';
-                iconSvg = `<svg class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-            } else if (type === 'error') {
-                bgClass = 'bg-rose-600 text-white';
-                iconSvg = `<svg class="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-            }
-
-            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg font-medium text-sm ${bgClass} fade-in transition-all duration-300`;
-            toast.innerHTML = `${iconSvg}<span>${escapeHTML(message)}</span>`;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(10px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function escapeHTML(str) {
-            if (!str) return '';
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
+        const domainErrorAlert = document.getElementById('domain-error-alert');
+        const currentDomainName = document.getElementById('current-domain-name');
 
         onAuthStateChanged(auth, (user) => {
             loadingSpinner.classList.add('hidden');
             if (user) {
                 currentUser = user;
                 
-                userAvatar.src = user.photoURL || 'https://placehold.co/100x100/0ea5e9/ffffff?text=U';
-                userName.textContent = user.displayName || 'ユーザー';
-                userEmail.textContent = user.email || '';
+                userAvatar.src = user.photoURL || `https://placehold.co/100x100/0ea5e9/ffffff?text=${user.isAnonymous ? 'G' : 'U'}`;
+                userName.textContent = user.displayName || (user.isAnonymous ? 'ゲストユーザー' : 'ユーザー');
+                userEmail.textContent = user.email || (user.isAnonymous ? `ID: ${user.uid.slice(0, 8)}...` : '');
                 
                 userProfile.classList.remove('hidden');
                 loginView.classList.add('hidden');
@@ -435,13 +404,36 @@
             }
         });
 
+        // Custom Token sign-in support if provided by environment
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            signInWithCustomToken(auth, __initial_auth_token).catch(() => {});
+        }
+
         btnGoogleLogin.addEventListener('click', async () => {
             try {
+                domainErrorAlert.classList.add('hidden');
                 await signInWithPopup(auth, googleProvider);
                 showToast('ログインしました', 'success');
             } catch (error) {
                 console.error("Login error:", error);
-                showToast('ログインに失敗しました: ' + error.message, 'error');
+                if (error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain')) {
+                    const domain = window.location.hostname || 'saa25024-bit.github.io';
+                    currentDomainName.textContent = domain;
+                    domainErrorAlert.classList.remove('hidden');
+                    showToast('GoogleログインにはFirebaseへのドメイン登録が必要です', 'error');
+                } else {
+                    showToast('ログインに失敗しました: ' + error.message, 'error');
+                }
+            }
+        });
+
+        btnGuestLogin.addEventListener('click', async () => {
+            try {
+                await signInAnonymously(auth);
+                showToast('ゲストとしてログインしました', 'success');
+            } catch (error) {
+                console.error("Guest login error:", error);
+                showToast('ゲストログインに失敗しました: ' + error.message, 'error');
             }
         });
 
