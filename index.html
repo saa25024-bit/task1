@@ -342,16 +342,18 @@
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // User's Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6J9iZjB0zw6PQVyW34De_XbAP4CQcsPE",
-            authDomain: "task-53f0a.firebaseapp.com",
-            projectId: "task-53f0a",
-            storageBucket: "task-53f0a.firebasestorage.app",
-            messagingSenderId: "1007010664935",
-            appId: "1:1007010664935:web:14b7d6c43a9035a06ead42",
-            measurementId: "G-GVFS6HXQF7"
-        };
+        // Dynamic Firebase Configuration with standard fallback
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyB6J9iZjB0zw6PQVyW34De_XbAP4CQcsPE",
+                authDomain: "task-53f0a.firebaseapp.com",
+                projectId: "task-53f0a",
+                storageBucket: "task-53f0a.firebasestorage.app",
+                messagingSenderId: "1007010664935",
+                appId: "1:1007010664935:web:14b7d6c43a9035a06ead42",
+                measurementId: "G-GVFS6HXQF7"
+            };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -379,6 +381,69 @@
         const domainErrorAlert = document.getElementById('domain-error-alert');
         const currentDomainName = document.getElementById('current-domain-name');
 
+        // Task List & Filter Elements
+        const tasksLoading = document.getElementById('tasks-loading');
+        const tasksEmpty = document.getElementById('tasks-empty');
+        const tasksWrapper = document.getElementById('tasks-wrapper');
+        const inputSearch = document.getElementById('input-search');
+        const filterStatus = document.getElementById('filter-status');
+        const filterPriority = document.getElementById('filter-priority');
+        const btnOpenCreateModal = document.getElementById('btn-open-create-modal');
+
+        // Modal & Form Elements
+        const taskModal = document.getElementById('task-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnCancelModal = document.getElementById('btn-cancel-modal');
+        const taskForm = document.getElementById('task-form');
+        const taskIdInput = document.getElementById('task-id');
+        const taskTitleInput = document.getElementById('task-title');
+        const taskDescInput = document.getElementById('task-description');
+        const taskPriorityInput = document.getElementById('task-priority');
+        const taskDueDateInput = document.getElementById('task-due-date');
+        const toastContainer = document.getElementById('toast-container');
+
+        // Helper Utility Functions
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showToast(message, type = 'info') {
+            if (!toastContainer) return;
+
+            const toast = document.createElement('div');
+            const bgColors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-rose-600 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+
+            toast.className = `${bgColors[type] || bgColors.info} px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 pointer-events-auto fade-in transition-all duration-300 transform translate-y-0`;
+            
+            let icon = '';
+            if (type === 'success') {
+                icon = `<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+            } else if (type === 'error') {
+                icon = `<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else {
+                icon = `<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+
+            toast.innerHTML = `${icon}<span>${escapeHTML(message)}</span>`;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         onAuthStateChanged(auth, (user) => {
             loadingSpinner.classList.add('hidden');
             if (user) {
@@ -404,10 +469,17 @@
             }
         });
 
-        // Custom Token sign-in support if provided by environment
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            signInWithCustomToken(auth, __initial_auth_token).catch(() => {});
+        // Auto authenticate using custom token if provided
+        async function autoAuthWithToken() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (err) {
+                    console.warn("Failed to sign in with custom token:", err);
+                }
+            }
         }
+        autoAuthWithToken();
 
         btnGoogleLogin.addEventListener('click', async () => {
             try {
@@ -416,13 +488,16 @@
                 showToast('ログインしました', 'success');
             } catch (error) {
                 console.error("Login error:", error);
+                const domain = window.location.hostname || 'localhost';
+                currentDomainName.textContent = domain;
+                domainErrorAlert.classList.remove('hidden');
+
                 if (error.code === 'auth/unauthorized-domain' || error.message?.includes('unauthorized-domain')) {
-                    const domain = window.location.hostname || 'saa25024-bit.github.io';
-                    currentDomainName.textContent = domain;
-                    domainErrorAlert.classList.remove('hidden');
-                    showToast('GoogleログインにはFirebaseへのドメイン登録が必要です', 'error');
+                    showToast('未承認ドメインのためGoogleログインできません。「ゲストで始める」をご利用ください。', 'error');
+                } else if (error.code === 'auth/popup-blocked') {
+                    showToast('ポップアップがブロックされました。「ゲストで始める」ボタンでお試しください。', 'error');
                 } else {
-                    showToast('ログインに失敗しました: ' + error.message, 'error');
+                    showToast('ログイン失敗: ' + error.message, 'error');
                 }
             }
         });
@@ -449,7 +524,7 @@
 
         // Firestore path rule: /artifacts/{appId}/users/{userId}/tasks
         const getTasksCollection = (uid) => {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'task-app';
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'task-53f0a';
             return collection(db, 'artifacts', appId, 'users', uid, 'tasks');
         };
 
